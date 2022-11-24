@@ -19,6 +19,7 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import io.openlineage.client.Clients;
 
 @Slf4j
 public class EventEmitter {
@@ -64,7 +65,9 @@ public class EventEmitter {
     argument.getApiKey().ifPresent(builder::apiKey);
     argument.getTimeout().ifPresent(builder::timeout);
 
-    this.client = OpenLineageClient.builder().transport(builder.build()).build();
+    // this.client = OpenLineageClient.builder().transport(builder.build()).build();
+
+    this.client = Clients.newClient();
     log.debug(
         String.format(
             "Init OpenLineageContext: Args: %s URI: %s", argument, lineageURI.toString()));

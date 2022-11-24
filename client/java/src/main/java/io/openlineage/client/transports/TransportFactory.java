@@ -5,6 +5,7 @@
 
 package io.openlineage.client.transports;
 
+import io.openlineage.client.transports.GoogleLineageTransport.GoogleLineageTransportBuilder;
 import lombok.NonNull;
 
 /**
@@ -43,7 +44,10 @@ public final class TransportFactory {
       }
       kafkaConfig.getProperties().put("server.id", kafkaConfig.getLocalServerId());
       return new KafkaTransport(kafkaConfig);
-    } else {
+    } else if (transportConfig instanceof GoogleLineageConfig) {
+      return GoogleLineageTransport.builder().build();
+    }
+    else {
       throw new IllegalArgumentException(
           "Transport must be of type 'Console', 'HTTP', or 'Kafka'.");
     }

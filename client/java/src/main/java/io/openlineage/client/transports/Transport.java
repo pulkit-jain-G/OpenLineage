@@ -13,7 +13,8 @@ public abstract class Transport {
     CONSOLE,
     HTTP,
     KAFKA,
-    NOOP
+    NOOP,
+    GOOGLE
   };
 
   @SuppressWarnings("PMD") // unused constructor type used for @NonNull validation
