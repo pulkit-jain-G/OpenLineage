@@ -23,8 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 /** Utilities class for {@link OpenLineageClient}. */
+@Slf4j
 public final class OpenLineageClientUtils {
   private OpenLineageClientUtils() {}
 
@@ -97,6 +99,7 @@ public final class OpenLineageClientUtils {
   public static OpenLineageYaml loadOpenLineageYaml(ConfigPathProvider configPathProvider) {
     try {
       for (final Path path : configPathProvider.getPaths()) {
+        log.info("loadOpenLineageYaml path is " + path.toString());
         if (Files.exists(path)) {
           return YML.readValue(path.toFile(), OpenLineageYaml.class);
         }

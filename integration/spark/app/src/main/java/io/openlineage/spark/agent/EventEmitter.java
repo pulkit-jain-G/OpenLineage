@@ -11,6 +11,9 @@ import io.openlineage.client.OpenLineageClientException;
 import io.openlineage.client.OpenLineageClientUtils;
 import io.openlineage.client.transports.ConsoleTransport;
 import io.openlineage.client.transports.HttpTransport;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -75,12 +78,47 @@ public class EventEmitter {
 
   public void emit(OpenLineage.RunEvent event) {
     try {
+       String projectId = getProjectId();
+       log.info("Porject id is "+ projectId);
       this.client.emit(event);
       log.debug(
           "Emitting lineage completed successfully: {}", OpenLineageClientUtils.toJson(event));
     } catch (OpenLineageClientException exception) {
       log.error("Could not emit lineage w/ exception", exception);
     }
+  }
+
+  private String getProjectId() {
+    try{
+      String[] cmd = {"/usr/share/google/get_metadata_value","../project/project-id"};
+      ProcessBuilder pb = new ProcessBuilder(cmd);
+      Process process = pb.start();
+      StringBuilder output = new StringBuilder();
+
+      BufferedReader reader = new BufferedReader(
+          new InputStreamReader(process.getInputStream()));
+
+      String line;
+      while ((line = reader.readLine()) != null) {
+        output.append(line + "\n");
+      }
+
+      int exitVal = process.waitFor();
+      if (exitVal == 0) {
+        log.info("Project Id is " + output);
+        return output.toString();
+      } else {
+        log.info("Else main!");
+      }
+
+    } catch (IOException e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      log.error(e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
   }
 
   private static Optional<UUID> convertToUUID(String uuid) {

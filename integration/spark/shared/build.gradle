@@ -32,6 +32,7 @@ archivesBaseName='openlineage-spark-shared'
 
 
 repositories {
+
     mavenLocal()
     mavenCentral()
     maven {
