@@ -68,7 +68,7 @@ public class EventEmitter {
     argument.getApiKey().ifPresent(builder::apiKey);
     argument.getTimeout().ifPresent(builder::timeout);
 
-    // this.client = OpenLineageClient.builder().transport(builder.build()).build();
+    //this.client = OpenLineageClient.builder().transport(builder.build()).build();
 
     this.client = Clients.newClient();
     log.debug(
@@ -78,8 +78,9 @@ public class EventEmitter {
 
   public void emit(OpenLineage.RunEvent event) {
     try {
-       String projectId = getProjectId();
-       log.info("Porject id is "+ projectId);
+       //String projectId = getProjectId();
+       //log.info("Porject id is "+ projectId);
+       //log.info(event.toString());
       this.client.emit(event);
       log.debug(
           "Emitting lineage completed successfully: {}", OpenLineageClientUtils.toJson(event));

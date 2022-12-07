@@ -79,12 +79,17 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
 
   /** called by the tests */
   public static void init(ContextFactory contextFactory) {
+    long startTime = System.currentTimeMillis();
     OpenLineageSparkListener.contextFactory = contextFactory;
     clear();
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry init elapsedTime " + elapsedTime);
   }
 
   @Override
   public void onOtherEvent(SparkListenerEvent event) {
+    long startTime = System.currentTimeMillis();
     if (isDisabled) {
       return;
     }
@@ -94,25 +99,37 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
     } else if (event instanceof SparkListenerSQLExecutionEnd) {
       sparkSQLExecEnd((SparkListenerSQLExecutionEnd) event);
     }
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry onOtherEvent elapsedTime " + elapsedTime);
   }
 
   /** called by the SparkListener when a spark-sql (Dataset api) execution starts */
   private static void sparkSQLExecStart(SparkListenerSQLExecutionStart startEvent) {
+    long startTime = System.currentTimeMillis();
     getSparkSQLExecutionContext(startEvent.executionId())
         .ifPresent(context -> context.start(startEvent));
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry sparkSQLExecStart elapsedTime " + elapsedTime);
   }
 
   /** called by the SparkListener when a spark-sql (Dataset api) execution ends */
   private static void sparkSQLExecEnd(SparkListenerSQLExecutionEnd endEvent) {
+    long startTime = System.currentTimeMillis();
     ExecutionContext context = sparkSqlExecutionRegistry.remove(endEvent.executionId());
     if (context != null) {
       context.end(endEvent);
     }
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry sparkSQLExecEnd elapsedTime " + elapsedTime);
   }
 
   /** called by the SparkListener when a job starts */
   @Override
   public void onJobStart(SparkListenerJobStart jobStart) {
+    long startTime = System.currentTimeMillis();
     if (isDisabled) {
       return;
     }
@@ -156,6 +173,11 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
               activeJob.ifPresent(context::setActiveJob);
               context.start(jobStart);
             });
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry onJobStart elapsedTime " + elapsedTime);
+    log.error("lineage telemetry onJobStart elapsedTime " + elapsedTime);
+    log.debug("lineage telemetry onJobStart elapsedTime " + elapsedTime);
   }
 
   private String getSqlExecutionId(Properties properties) {
@@ -165,6 +187,7 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
   /** called by the SparkListener when a job ends */
   @Override
   public void onJobEnd(SparkListenerJobEnd jobEnd) {
+    long startTime = System.currentTimeMillis();
     if (isDisabled) {
       return;
     }
@@ -173,14 +196,21 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
       context.end(jobEnd);
     }
     jobMetrics.cleanUp(jobEnd.jobId());
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry onJobEnd elapsedTime " + elapsedTime);
   }
 
   @Override
   public void onTaskEnd(SparkListenerTaskEnd taskEnd) {
+    long startTime = System.currentTimeMillis();
     if (isDisabled) {
       return;
     }
     jobMetrics.addMetrics(taskEnd.stageId(), taskEnd.taskMetrics());
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry onTaskEnd elapsedTime " + elapsedTime);
   }
 
   public static Optional<ExecutionContext> getSparkSQLExecutionContext(long executionId) {
@@ -197,10 +227,14 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
   }
 
   public static Optional<ExecutionContext> getExecutionContext(int jobId, long executionId) {
+    long startTime = System.currentTimeMillis();
     Optional<ExecutionContext> executionContext = getSparkSQLExecutionContext(executionId);
     if (executionContext.isPresent()) {
       rddExecutionRegistry.put(jobId, executionContext.get());
     }
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry getExecutionContext elapsedTime " + elapsedTime);
     return executionContext;
   }
 
@@ -209,18 +243,23 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
   }
 
   public static void emitError(Exception e) {
+    long startTime = System.currentTimeMillis();
     OpenLineage ol = new OpenLineage(Versions.OPEN_LINEAGE_PRODUCER_URI);
     try {
       contextFactory.openLineageEventEmitter.emit(buildErrorLineageEvent(ol, errorRunFacet(e, ol)));
     } catch (Exception ex) {
       log.error("Could not emit open lineage on error", e);
     }
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry emitError elapsedTime " + elapsedTime);
   }
 
   @SuppressWarnings(
       "PMD") // javadoc -> Closing a ByteArrayOutputStream has no effect. The methods in this class
   // can be called after the stream has been closed without generating an IOException.
   private static OpenLineage.RunFacets errorRunFacet(Exception e, OpenLineage ol) {
+    long startTime = System.currentTimeMillis();
     OpenLineage.RunFacet errorFacet = ol.newRunFacet();
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     e.printStackTrace(new PrintWriter(buffer, true));
@@ -228,6 +267,9 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
 
     OpenLineage.RunFacetsBuilder runFacetsBuilder = ol.newRunFacetsBuilder();
     runFacetsBuilder.put("lineage.error", errorFacet);
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry errorRunFacet elapsedTime " + elapsedTime);
     return runFacetsBuilder.build();
   }
 
@@ -247,9 +289,13 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
   }
 
   private static void clear() {
+    long startTime = System.currentTimeMillis();
     sparkSqlExecutionRegistry.clear();
     rddExecutionRegistry.clear();
     outputs.clear();
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry clear elapsedTime " + elapsedTime);
   }
 
   @Override
@@ -270,10 +316,15 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
    */
   @Override
   public void onApplicationStart(SparkListenerApplicationStart applicationStart) {
+    long startTime = System.currentTimeMillis();
     initializeContextFactoryIfNotInitialized();
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry onApplicationStart elapsedTime " + elapsedTime);
   }
 
   private void initializeContextFactoryIfNotInitialized() {
+    long startTime = System.currentTimeMillis();
     if (contextFactory != null || isDisabled) {
       return;
     }
@@ -290,6 +341,9 @@ public class OpenLineageSparkListener extends org.apache.spark.scheduler.SparkLi
           "Open lineage listener instantiated, but no configuration could be found. "
               + "Lineage events will not be collected");
     }
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    log.info("lineage telemetry initializeContextFactoryIfNotInitialized elapsedTime " + elapsedTime);
   }
 
   private static boolean checkIfDisabled() {

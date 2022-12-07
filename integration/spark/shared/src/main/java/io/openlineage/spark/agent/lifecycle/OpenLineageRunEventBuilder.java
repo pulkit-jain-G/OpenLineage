@@ -289,15 +289,17 @@ class OpenLineageRunEventBuilder {
         openLineageContext.getOpenLineage().newJobFacetsBuilder();
 
     parentRunFacet.ifPresent(runFacetsBuilder::parent);
-    OpenLineage.JobFacets jobFacets = buildJobFacets(nodes, jobFacetBuilders, jobFacetsBuilder);
+    //OpenLineage.JobFacets jobFacets = buildJobFacets(nodes, jobFacetBuilders, jobFacetsBuilder);
+    OpenLineage.JobFacets jobFacets = jobFacetsBuilder.build();
     List<InputDataset> inputDatasets = buildInputDatasets(nodes);
     List<OutputDataset> outputDatasets = buildOutputDatasets(nodes);
-    openLineageContext
-        .getQueryExecution()
-        .flatMap(qe -> unknownEntryFacetListener.build(qe.optimizedPlan()))
-        .ifPresent(facet -> runFacetsBuilder.put("spark_unknown", facet));
+    // openLineageContext
+    //     .getQueryExecution()
+    //     .flatMap(qe -> unknownEntryFacetListener.build(qe.optimizedPlan()))
+    //     .ifPresent(facet -> runFacetsBuilder.put("spark_unknown", facet));
 
-    RunFacets runFacets = buildRunFacets(nodes, runFacetBuilders, runFacetsBuilder);
+    // RunFacets runFacets = buildRunFacets(nodes, runFacetBuilders, runFacetsBuilder);
+    RunFacets runFacets = runFacetsBuilder.build();
     OpenLineage.RunBuilder runBuilder =
         openLineage.newRunBuilder().runId(openLineageContext.getRunUuid()).facets(runFacets);
     return runEventBuilder

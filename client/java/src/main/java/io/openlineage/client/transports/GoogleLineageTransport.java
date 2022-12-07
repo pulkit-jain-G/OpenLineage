@@ -51,7 +51,10 @@ public final class GoogleLineageTransport extends Transport {
     int num = atomicInteger.incrementAndGet();
     String fileName = "lineage_tmp_" + num;
     final String eventAsJson = OpenLineageClientUtils.toJson(runEvent);
-    log.info("Lineage Test POST {}: {}", fileName, eventAsJson);
+    //log.info("Lineage Test POST {}: {}", fileName, eventAsJson);
+    log.info("Lineage Test POST {}", fileName);
+    log.debug("Lineage Test POST {}", fileName);
+    log.error("Lineage Test POST {}", fileName);
     writeToFile(fileName, eventAsJson);
   }
 
